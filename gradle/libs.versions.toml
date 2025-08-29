@@ -16,7 +16,8 @@ coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-lifecycleRuntimeKtx = "2.9.3"
+#noinspection GradleDependency
+lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 #noinspection GradleDependency
 composeBom = "2024.08.00"
