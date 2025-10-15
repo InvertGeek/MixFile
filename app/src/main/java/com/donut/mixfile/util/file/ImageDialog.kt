@@ -31,7 +31,7 @@ import net.engawapg.lib.zoomable.zoomable
 import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.internal.headersContentLength
+import okhttp3.internal.toLongOrDefault
 import java.util.concurrent.TimeUnit
 
 @Composable
@@ -83,7 +83,8 @@ val forceCacheInterceptor = Interceptor { chain ->
 val videoDecodeInterceptor = Interceptor { chain ->
     val response = chain.proceed(chain.request())
     if (response.header("content-type")?.startsWith("video/").isTrue()) {
-        if (response.headersContentLength() > 1024 * 1024 * 5) {
+        val contentLength = response.header("Content-Length")?.toLongOrDefault(-1) ?: 0
+        if (contentLength > 1024 * 1024 * 5) {
             return@Interceptor response.newBuilder()
                 .header("Content-Length", "${1024 * 1024 * 3}")
                 .body(response.peekBody(1024 * 1024 * 3))
