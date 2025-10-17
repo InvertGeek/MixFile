@@ -20,7 +20,7 @@ MixFile是一款可以上传加密文件并分享的安卓APP \
 将分享码发送给他人即可实现分享文件 \
 已发布版本: https://github.com/InvertGeek/MixFile/releases \
 使用帮助: https://invertgeek.github.io/mixfile-doc/help.html \
-TG群: https://t.me/mixfilefx
+TG群: https://t.me/ivgeek
 
 ### 功能
 支持加密上传下载，批量分享文件 \
