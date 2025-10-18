@@ -18,7 +18,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 147
-        versionName = "2.0.2"
+        versionName = "2.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -70,7 +70,7 @@ android {
 
 dependencies {
 
-    implementation("com.github.InvertGeek:mixfile-core:2.0.2")
+    implementation("com.github.InvertGeek:mixfile-core:2.0.3")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.tencent:mmkv:1.3.14")
     implementation("net.engawapg.lib:zoomable:1.6.1")
