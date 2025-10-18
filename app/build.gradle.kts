@@ -17,7 +17,7 @@ android {
         applicationId = "com.donut.mixfile"
         minSdk = 26
         targetSdk = 36
-        versionCode = 147
+        versionCode = 148
         versionName = "2.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
