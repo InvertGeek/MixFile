@@ -21,13 +21,11 @@ import com.donut.mixfile.util.reveiver.NetworkChangeReceiver
 class MainActivity : MixActivity(MAIN_ID) {
 
     companion object {
-        lateinit var mixFileSelector: MixFileSelector
         lateinit var networkChangeReceiver: NetworkChangeReceiver
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mixFileSelector.unregister()
         unregisterReceiver(networkChangeReceiver)
     }
 
@@ -36,7 +34,6 @@ class MainActivity : MixActivity(MAIN_ID) {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        mixFileSelector = MixFileSelector(this)
         super.onCreate(savedInstanceState)
         val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         networkChangeReceiver = NetworkChangeReceiver

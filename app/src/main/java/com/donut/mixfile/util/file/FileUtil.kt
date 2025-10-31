@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import com.donut.mixfile.MainActivity
 import com.donut.mixfile.app
 import com.donut.mixfile.appScope
+import com.donut.mixfile.currentActivity
 import com.donut.mixfile.server.core.utils.StreamContent
 import com.donut.mixfile.server.core.utils.extensions.kb
 import com.donut.mixfile.server.core.utils.extensions.mb
@@ -215,7 +216,7 @@ fun uploadFileUris(uriList: List<Uri>) {
 
 @SuppressLint("Recycle")
 fun selectAndUploadFile() {
-    MainActivity.mixFileSelector.openSelect { uriList ->
+    currentActivity?.fileSelector?.openSelect { uriList ->
         uploadFileUris(uriList)
     }
 }
