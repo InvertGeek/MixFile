@@ -61,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -260,7 +261,7 @@ suspend fun saveFileToStorage(
 
 
     val fileUri = resolver.insert(storeUri, contentValues)
-    coroutineContext.job.invokeOnCompletion { throwable ->
+    currentCoroutineContext().job.invokeOnCompletion { throwable ->
         if (throwable !is CancellationException) {
             return@invokeOnCompletion
         }
