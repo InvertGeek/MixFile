@@ -63,10 +63,10 @@
 
 | 模块 | 描述 | 仓库地址 |
 |------|------|----------|
-| **mixfile-core** | 核心加密与逻辑实现 | [GitHub](https://github.com/InvertGeek/mixfile-core) |
+| **mixfile-core** | MixFile核心上传加密逻辑实现 | [GitHub](https://github.com/InvertGeek/mixfile-core) |
 | **mixfile-scripts** | JS 自定义线路脚本 | [GitHub](https://github.com/InvertGeek/mixfile-scripts) |
-| **mixfile-cli** | 命令行端工具 | [GitHub](https://github.com/InvertGeek/mixfilecli) |
-| **mixfile-front** | 网页端源码 | [GitHub](https://github.com/InvertGeek/mixfilefront) |
+| **mixfile-cli** | MixFile命令行端 | [GitHub](https://github.com/InvertGeek/mixfilecli) |
+| **mixfile-front** | MixFile网页端源码 | [GitHub](https://github.com/InvertGeek/mixfilefront) |
 | **MixMessage** | QQ/微信等平台加密聊天 | [GitHub](https://github.com/InvertGeek/MixMessage) |
 | **MixGram** | 基于 Git 的加密聊天 | [GitHub](https://github.com/InvertGeek/MixGram) |
 | **mixfileexamplejs** | HTTP 线路示例（旧版） | [GitHub](https://github.com/InvertGeek/mixfileexamplejs) |
