@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.donut.mixfile.MainActivity
 import com.donut.mixfile.app
 import com.donut.mixfile.appScope
 import com.donut.mixfile.currentActivity
@@ -68,7 +67,6 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 
 val localClient = HttpClient(OkHttp).config {
     install(HttpTimeout) {
