@@ -69,7 +69,7 @@ android {
 
 
 dependencies {
-
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation("com.github.InvertGeek:mixfile-core:2.0.7")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.tencent:mmkv:1.3.14")
