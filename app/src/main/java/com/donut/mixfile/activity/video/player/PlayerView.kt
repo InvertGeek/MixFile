@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
@@ -177,13 +178,13 @@ fun VideoPlayerScreen(
             controlsVisible.set(true)
         }
 
+        var progress by remember { mutableFloatStateOf(0f) }
 
-        BottomControl(
-            visible = controlsVisible.get,
-            modifier = Modifier.align(Alignment.BottomCenter),
-            player = player,
-            videos = videoUris,
-            onPlayTimeChange = {
+        LaunchedEffect(player) {
+            while (true) {
+                progress = if (player.duration > 0) {
+                    player.currentPosition.toFloat() / player.duration
+                } else 0f
                 playHistory =
                     playHistory.filter { !it.hash.contentEquals(hash) }.toMutableList().apply {
                         val history =
@@ -193,8 +194,20 @@ fun VideoPlayerScreen(
                             removeAt(lastIndex)
                         }
                     }
-            },
+                delay(1000)
+            }
+
+        }
+
+
+        BottomControl(
+            visible = controlsVisible.get,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            player = player,
+            videos = videoUris,
+            progress = progress,
             onTrackTimeChange = {
+                progress = it
                 controlsVisible.set(true)
             }
         )

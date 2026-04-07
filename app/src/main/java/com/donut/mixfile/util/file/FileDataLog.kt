@@ -3,10 +3,15 @@ package com.donut.mixfile.util.file
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import com.donut.mixfile.server.core.objects.FileDataLog
 import com.donut.mixfile.server.core.objects.MixShareInfo
 import com.donut.mixfile.server.core.utils.resolveMixShareInfo
@@ -42,26 +47,43 @@ fun FileDataLog.updateDataList(
 fun FileDataLog.rename(callback: (FileDataLog) -> Unit = {}) {
     var shareInfo = resolveMixShareInfo(shareInfoData) ?: return
     MixDialogBuilder("重命名文件").apply {
-        var name by mutableStateOf(shareInfo.fileName)
+        var value by mutableStateOf(TextFieldValue(shareInfo.fileName))
+        val focusRequester = FocusRequester()
         setContent {
+
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
+                val text = value.text
+                val dotIndex = text.lastIndexOf('.')
+                val end = if (dotIndex == -1) text.length else dotIndex
+
+                value = value.copy(
+                    selection = TextRange(0, end)
+                )
+            }
+
             OutlinedTextField(
-                value = name,
+                value = value,
                 onValueChange = {
-                    name = it
+                    value = it
                 },
-                modifier = Modifier.fillMaxWidth(), label = {
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .fillMaxWidth(),
+                label = {
                     Text(text = "输入文件名")
                 },
                 maxLines = 1
             )
+
         }
         setDefaultNegative()
         setPositiveButton("确定") {
-            if (name.isEmpty()) {
+            if (value.text.isEmpty()) {
                 showToast("文件名不能为空!")
                 return@setPositiveButton
             }
-            val sanitizedName = name.sanitizeFileName()
+            val sanitizedName = value.text.sanitizeFileName()
             shareInfo = shareInfo.copy(fileName = sanitizedName)
             val renamedLog = copy(
                 name = sanitizedName,

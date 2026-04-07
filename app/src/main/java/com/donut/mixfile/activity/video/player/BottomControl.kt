@@ -25,11 +25,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -40,7 +36,6 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.ExoPlayer
 import com.donut.mixfile.ui.component.common.MixDialogBuilder
 import com.donut.mixfile.ui.component.common.SingleSelectItemList
-import kotlinx.coroutines.delay
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,8 +45,8 @@ fun BottomControl(
     modifier: Modifier,
     player: ExoPlayer,
     videos: List<Uri>,
-    onPlayTimeChange: () -> Unit,
-    onTrackTimeChange: () -> Unit,
+    progress: Float,
+    onTrackTimeChange: (Float) -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -70,24 +65,13 @@ fun BottomControl(
                 .padding(5.dp),
         ) {
 
-            var progress by remember { mutableFloatStateOf(0f) }
-            LaunchedEffect(player) {
-                while (true) {
-                    progress = if (player.duration > 0) {
-                        player.currentPosition.toFloat() / player.duration
-                    } else 0f
-                    onPlayTimeChange()
-                    delay(1000)
-                }
 
-            }
             Slider(
                 value = progress,
                 onValueChange = { newValue ->
-                    progress = newValue
                     player.pause()
                     player.seekTo((player.duration * newValue).toLong())
-                    onTrackTimeChange()
+                    onTrackTimeChange(newValue)
                 },
                 onValueChangeFinished = {
                     player.play()
