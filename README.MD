@@ -67,7 +67,7 @@
 | **mixfile-core** | MixFile核心上传加密逻辑实现 | [GitHub](https://github.com/InvertGeek/mixfile-core) |
 | **mixfile-scripts** | JS 自定义线路脚本 | [GitHub](https://github.com/InvertGeek/mixfile-scripts) |
 | **mixfile-cli** | MixFile命令行端 | [GitHub](https://github.com/InvertGeek/mixfilecli) |
-| **mixfile_go** | 高性能MixFile解析服务器 | [GitHub](https://github.com/InvertGeek/mixfile_go) |
+| **mixfile-go** | 高性能MixFile解析服务器 | [GitHub](https://github.com/InvertGeek/mixfile-go) |
 | **mixfile-front** | MixFile网页端源码 | [GitHub](https://github.com/InvertGeek/mixfilefront) |
 | **MixMessage** | QQ/微信等平台加密聊天 | [GitHub](https://github.com/InvertGeek/MixMessage) |
 | **MixGram** | 基于 Git 的加密聊天 | [GitHub](https://github.com/InvertGeek/MixGram) |
