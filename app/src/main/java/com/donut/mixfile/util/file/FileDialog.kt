@@ -109,10 +109,9 @@ fun showFileInfoDialog(
                                 startActivity(intent)
                                 return@Chip
                             }
-                            val intent = Intent(app, VideoActivity::class.java).apply {
-                                putExtra("url", log.downloadUrl)
-                                putExtra("hash", shareInfo.toString().hashSHA256().toHex())
-                            }
+                            val intent = Intent(app, VideoActivity::class.java)
+                            VideoActivity.videoList = listOf(log.downloadUrl.toUri())
+                            VideoActivity.videoHash = shareInfo.toString().hashSHA256().toHex()
                             startActivity(intent)
                         }
                     }

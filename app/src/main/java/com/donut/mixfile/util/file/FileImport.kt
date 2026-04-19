@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.donut.mixfile.activity.video.VideoActivity
 import com.donut.mixfile.app
 import com.donut.mixfile.server.core.objects.FileDataLog
@@ -83,13 +84,9 @@ fun playVideoList(videoList: List<FileDataLog>) {
     val playList = videoList.sortedWith { file1, file2 ->
         file1.name.compareByName(file2.name)
     }
-    val intent = Intent(app, VideoActivity::class.java).apply {
-        putExtra(
-            "fileList",
-            playList.joinToString("\n") { it.downloadUrl }
-        )
-        putExtra("hash", playList.hashSHA256())
-    }
+    val intent = Intent(app, VideoActivity::class.java)
+    VideoActivity.videoList = playList.map { it.downloadUrl.toUri() }
+    VideoActivity.videoHash = playList.hashSHA256()
     startActivity(intent)
 }
 
