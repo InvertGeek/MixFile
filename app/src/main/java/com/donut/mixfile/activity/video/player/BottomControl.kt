@@ -171,15 +171,17 @@ fun BottomControl(
                                     "选集",
                                     scheme = playerColorScheme
                                 ).apply {
+                                    val indexMap =
+                                        videos.mapIndexed { index, uri -> index to uri }
                                     setContent {
                                         SingleSelectItemList(
-                                            videos,
-                                            currentOption = videos[player.currentMediaItemIndex],
+                                            indexMap,
+                                            currentOption = indexMap[player.currentMediaItemIndex],
                                             getLabel = {
-                                                "${videos.indexOf(it) + 1} - ${it.fragment}"
+                                                "${it.first + 1} - ${it.second.fragment}"
                                             }
                                         ) {
-                                            player.seekToDefaultPosition(videos.indexOf(it))
+                                            player.seekToDefaultPosition(it.first)
                                             closeDialog()
                                         }
                                     }
