@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.EOFException
-import java.math.BigInteger
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.URL
@@ -159,45 +158,72 @@ fun <T> List<T>.at(index: Long): T {
     return this[fixedIndex.toInt()]
 }
 
-fun String.parseSortNum(): BigInteger {
-    val numberStr = this.filter { it.isDigit() }.ifEmpty { "0" }
-    return BigInteger(numberStr)
-}
+fun String.compareByName(b: String): Int {
+    val a = this
+    if (a == b) return 0
 
-fun extractNumber(str: String, start: Int): Long {
-    var result = 0L
-    var i = start
-    while (i < str.length && str[i].isDigit()) {
-        result = result * 10 + (str[i] - '0')
-        i++
-    }
-    return result
-}
+    val len1 = a.length
+    val len2 = b.length
+    var i = 0
+    var j = 0
 
-fun String.compareByName(str2: String): Int {
-    var i1 = 0
-    var i2 = 0
-    val str1 = this
-    while (i1 < str1.length && i2 < str2.length) {
-        // 处理数字部分
-        val char1 = str1[i1]
-        val char2 = str2[i2]
-        if (char1.isDigit() && char2.isDigit()) {
-            val num1 =
-                extractNumber(str1, i1).also { i1 += it.toString().length }
-            val num2 =
-                extractNumber(str2, i2).also { i2 += it.toString().length }
-            //相等则继续提取下个数字进行比较
-            if (num1 != num2) return num1.compareTo(num2)
-        }
-        // 处理非数字部分
-        else {
-            if (char1 != char2) return char1.compareTo(char2)
-            i1++
-            i2++
+    while (i < len1 && j < len2) {
+        val c1 = a[i]
+        val c2 = b[j]
+
+        val isDig1 = c1 in '0'..'9'
+        val isDig2 = c2 in '0'..'9'
+
+        if (isDig1 && isDig2) {
+            val start1 = i
+            val start2 = j
+
+            // 跳过前导零，但保留最后一个零（如果是全零或数字结尾）
+            while (i < len1 - 1 && a[i] == '0' && a[i + 1] in '0'..'9') i++
+            while (j < len2 - 1 && b[j] == '0' && b[j + 1] in '0'..'9') j++
+
+            val valStart1 = i
+            val valStart2 = j
+
+            // 计算数字部分的长度
+            while (i < len1 && a[i] in '0'..'9') i++
+            while (j < len2 && b[j] in '0'..'9') j++
+
+            val numLen1 = i - valStart1
+            val numLen2 = j - valStart2
+
+            // 1. 比较数字长度（位数多者大）
+            if (numLen1 != numLen2) return numLen1 - numLen2
+
+            // 2. 长度相同时，逐位比较数值大小
+            for (k in 0 until numLen1) {
+                val diff = a[valStart1 + k] - b[valStart2 + k]
+                if (diff != 0) return diff
+            }
+
+            // 3. 数值完全一样，比较包含前导零的原始长度
+            val fullLen1 = i - start1
+            val fullLen2 = j - start2
+            if (fullLen1 != fullLen2) return fullLen1 - fullLen2
+
+        } else {
+            // 非数字部分比较
+            if (c1 != c2) {
+                // 模拟 case-insensitive 比较 (仅针对 ASCII)
+                val low1 = if (c1 in 'A'..'Z') c1 + 32 else c1
+                val low2 = if (c2 in 'A'..'Z') c2 + 32 else c2
+
+                if (low1 != low2) return low1 - low2
+                // 小写相同但原始字符不同（如 'a' vs 'A'）
+                return c1 - c2
+            }
+            i++
+            j++
         }
     }
-    return str1.length.compareTo(str2.length)
+
+    // 4. 若前面都相同，则短串在前
+    return len1 - len2
 }
 
 fun <T> List<T>.at(index: Int): T {
