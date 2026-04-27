@@ -169,7 +169,7 @@ fun BottomControl(
                             onClick = {
                                 MixDialogBuilder(
                                     "选集",
-                                    scheme = playerColorScheme
+                                    colorScheme = playerColorScheme
                                 ).apply {
                                     val indexMap =
                                         videos.mapIndexed { index, uri -> index to uri }
@@ -206,7 +206,7 @@ fun BottomControl(
                         onClick = {
                             MixDialogBuilder(
                                 "播放速度",
-                                scheme = playerColorScheme
+                                colorScheme = playerColorScheme
                             ).apply {
                                 setContent {
                                     SingleSelectItemList(

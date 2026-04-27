@@ -20,9 +20,9 @@ var CUSTOM_UPLOAD_URL by cachedMutableOf("", "CUSTOM_UPLOAD_URL")
 var CUSTOM_REFERER by cachedMutableOf("", "CUSTOM_REFERER")
 
 
-val UPLOADERS = listOf(A1Uploader, A2Uploader, A3Uploader, CustomUploader, JavaScriptUploader)
+val UPLOADERS = listOf(CustomUploader, JavaScriptUploader)
 
-val DEFAULT_UPLOADER = A2Uploader
+val DEFAULT_UPLOADER = JavaScriptUploader
 
 var currentUploader by cachedMutableOf(DEFAULT_UPLOADER.name, "current_uploader")
 

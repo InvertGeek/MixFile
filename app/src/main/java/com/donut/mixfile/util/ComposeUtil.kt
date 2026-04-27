@@ -224,8 +224,12 @@ fun showConfirmDialog(title: String, subtitle: String = "", onConfirm: () -> Uni
 
 }
 
-fun showErrorDialog(e: Throwable, title: String = "发生错误") {
-    MixDialogBuilder(title).apply {
+fun showErrorDialog(
+    e: Throwable,
+    title: String = "发生错误",
+    colorScheme: ColorScheme = mainColorScheme
+) {
+    MixDialogBuilder(title, colorScheme = colorScheme).apply {
         setContent {
             Column(
                 modifier = Modifier
@@ -249,4 +253,3 @@ fun showErrorDialog(e: Throwable, title: String = "发生错误") {
         show()
     }
 }
-

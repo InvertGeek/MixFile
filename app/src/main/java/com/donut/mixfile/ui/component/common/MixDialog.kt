@@ -34,7 +34,7 @@ class MixDialogBuilder(
     private val iconContentColor: Color? = null,
     private val titleContentColor: Color? = null,
     private val textContentColor: Color? = null,
-    private val scheme: ColorScheme? = null,
+    private val colorScheme: ColorScheme? = null,
 ) {
     private var content = @Composable {}
     private var positiveButton = @Composable {}
@@ -114,7 +114,7 @@ class MixDialogBuilder(
             iconContentColor,
             titleContentColor,
             textContentColor,
-            scheme
+            colorScheme
         )
         dialogCache[tag]?.invoke()
         dialogCache[tag] = close

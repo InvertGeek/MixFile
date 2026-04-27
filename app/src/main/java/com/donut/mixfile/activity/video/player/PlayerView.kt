@@ -3,6 +3,7 @@ package com.donut.mixfile.activity.video.player
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -26,13 +27,21 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.Player.REPEAT_MODE_ALL
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import androidx.media3.ui.PlayerView
 import com.donut.mixfile.activity.video.VideoHistory
 import com.donut.mixfile.activity.video.playHistory
 import com.donut.mixfile.ui.theme.mainColorScheme
 import com.donut.mixfile.util.ForceUpdateMutable
+import com.donut.mixfile.util.showErrorDialog
 import com.donut.mixfile.util.showToast
 import kotlinx.coroutines.delay
 import java.util.Locale
@@ -56,6 +65,7 @@ val playerColorScheme
         onSecondaryContainer = mainColorScheme.primary.copy(0.8f)
     )
 
+@OptIn(UnstableApi::class)
 @Composable
 fun VideoPlayerScreen(
     videoUris: List<Uri>,
@@ -64,21 +74,42 @@ fun VideoPlayerScreen(
 ) {
     val context = LocalContext.current
     val player = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItems(videoUris.map { MediaItem.fromUri(it) })
-            repeatMode = REPEAT_MODE_ALL
-            val cached = playHistory.firstOrNull { it.hash.contentEquals(hash) }
-            if (cached != null) {
-                setMediaItems(
-                    videoUris.map { MediaItem.fromUri(it) },
-                    cached.episode,
-                    (cached.time - 2000L).coerceAtLeast(0)
-                )
-                showToast("已跳转到上次播放位置", length = Toast.LENGTH_SHORT)
-            }
-            prepare()
-            playWhenReady = true
+        // 1. 创建渲染器工厂
+        val renderersFactory = DefaultRenderersFactory(context).apply {
+            setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+
         }
+
+
+        val extractorsFactory = DefaultExtractorsFactory().apply {
+            // 开启对所有可能的容器支持
+            setConstantBitrateSeekingEnabled(true) // 允许对没有索引的流进行粗略进度拖动
+            setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS)
+        }
+
+        ExoPlayer.Builder(context, renderersFactory)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(context, extractorsFactory))
+            .build()
+            .apply {
+                addListener(object : Player.Listener {
+                    override fun onPlayerError(error: PlaybackException) {
+                        showErrorDialog(error, "播放出错", playerColorScheme)
+                    }
+                })
+                setMediaItems(videoUris.map { MediaItem.fromUri(it) })
+                repeatMode = REPEAT_MODE_ALL
+                val cached = playHistory.firstOrNull { it.hash.contentEquals(hash) }
+                if (cached != null) {
+                    setMediaItems(
+                        videoUris.map { MediaItem.fromUri(it) },
+                        cached.episode,
+                        (cached.time - 2000L).coerceAtLeast(0)
+                    )
+                    showToast("已跳转到上次播放位置", length = Toast.LENGTH_SHORT)
+                }
+                prepare()
+                playWhenReady = true
+            }
     }
 
     var currentMediaItem by remember { mutableIntStateOf(player.currentMediaItemIndex) }
