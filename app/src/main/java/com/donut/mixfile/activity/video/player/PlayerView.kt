@@ -200,7 +200,7 @@ fun VideoPlayerScreen(
                             android.graphics.Color.TRANSPARENT,         // 窗口颜色
                             CaptionStyleCompat.EDGE_TYPE_OUTLINE, // 边缘样式
                             android.graphics.Color.BLACK,               // 边缘颜色
-                            Typeface.DEFAULT      // 粗体
+                            Typeface.DEFAULT
                         )
                         setStyle(customStyle)
 
