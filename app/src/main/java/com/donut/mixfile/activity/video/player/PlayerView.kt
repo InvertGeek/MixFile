@@ -1,6 +1,7 @@
 package com.donut.mixfile.activity.video.player
 
 
+import android.graphics.Typeface
 import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.OptIn
@@ -36,6 +37,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
+import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import com.donut.mixfile.activity.video.VideoHistory
 import com.donut.mixfile.activity.video.playHistory
@@ -183,7 +185,31 @@ fun VideoPlayerScreen(
             factory = {
                 PlayerView(context).apply {
                     this.player = player
-                    useController = false
+                    this.useController = false
+
+                    // 1. 获取 SubtitleView 引用
+                    subtitleView?.apply {
+                        // 2. 禁用内嵌样式（强制使用自定义样式，防止 .ass 字幕干扰）
+                        setApplyEmbeddedStyles(false)
+                        setApplyEmbeddedFontSizes(false)
+
+                        // 3. 设置样式：白色文字、黑色半透明背景、圆角或阴影
+                        val customStyle = CaptionStyleCompat(
+                            android.graphics.Color.WHITE,               // 字体颜色
+                            android.graphics.Color.TRANSPARENT,         // 背景颜色
+                            android.graphics.Color.TRANSPARENT,         // 窗口颜色
+                            CaptionStyleCompat.EDGE_TYPE_OUTLINE, // 边缘样式
+                            android.graphics.Color.BLACK,               // 边缘颜色
+                            Typeface.DEFAULT      // 粗体
+                        )
+                        setStyle(customStyle)
+
+                        // 4. 设置字体大小：0.05f 代表字体高度约占屏幕高度的 5%
+                        setFractionalTextSize(0.05f)
+
+                        // 5. 调整边距：防止字幕太靠底
+                        setBottomPaddingFraction(0.08f)
+                    }
                 }
             },
             modifier = Modifier.fillMaxSize()

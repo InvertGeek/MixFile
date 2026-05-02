@@ -28,8 +28,6 @@ class VideoActivity : MixActivity("video") {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
         enterFullScreen()
         // 设置保持屏幕常亮
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
