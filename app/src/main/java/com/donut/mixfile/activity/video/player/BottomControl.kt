@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -20,11 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
-import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import com.donut.mixfile.ui.component.common.MixDialogBuilder
 import com.donut.mixfile.ui.component.common.SingleSelectItemList
@@ -73,12 +74,41 @@ fun BottomControl(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
+                    var lastSeek = remember { System.currentTimeMillis() }
                     if (player.mediaItemCount > 1) {
-                        IconButton(onClick = { player.seekToPreviousMediaItem() }) {
-                            Icon(Icons.Default.SkipPrevious, "Previous", tint = Color.White)
+                        IconButton(
+                            modifier = Modifier.scale(1f),
+                            onClick = {
+                                if (System.currentTimeMillis() - lastSeek < 500) {
+                                    return@IconButton
+                                }
+                                lastSeek = System.currentTimeMillis()
+                                player.seekToPreviousMediaItem()
+                            },
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(100.dp),
+                                imageVector = Icons.Default.SkipPrevious,
+                                contentDescription = "Previous",
+                                tint = Color.White
+                            )
                         }
-                        IconButton(onClick = { player.seekToNextMediaItem() }) {
-                            Icon(Icons.Default.SkipNext, "Next", tint = Color.White)
+                        IconButton(
+                            modifier = Modifier.scale(1f),
+                            onClick = {
+                                if (System.currentTimeMillis() - lastSeek < 500) {
+                                    return@IconButton
+                                }
+                                lastSeek = System.currentTimeMillis()
+                                player.seekToNextMediaItem()
+                            },
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(100.dp),
+                                imageVector = Icons.Default.SkipNext,
+                                contentDescription = "Next",
+                                tint = Color.White
+                            )
                         }
                     }
                     Text(
@@ -103,33 +133,13 @@ fun BottomControl(
                         remember(tracks) { tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO } }
                     if (audioGroups.size > 1) {
                         PlayerSettingChip("音轨") {
-                            val infos = TrackUtils.getFormattedTracks(audioGroups, "音轨")
-                            val options = infos.map { it.label }
-                            val current =
-                                infos.find { it.isSelected }?.label ?: options.firstOrNull() ?: ""
-
-                            MixDialogBuilder("选择音轨", colorScheme = playerColorScheme).apply {
-                                setContent {
-                                    SingleSelectItemList(
-                                        options,
-                                        currentOption = current
-                                    ) { selected ->
-                                        val target = infos.find { it.label == selected }!!
-                                        player.trackSelectionParameters =
-                                            player.trackSelectionParameters
-                                                .buildUpon()
-                                                .setOverrideForType(
-                                                    TrackSelectionOverride(
-                                                        target.group,
-                                                        target.index
-                                                    )
-                                                )
-                                                .build()
-                                        closeDialog()
-                                    }
-                                }
-                                show()
-                            }
+                            showTrackSelector(
+                                title = "选择音轨",
+                                player = player,
+                                trackType = C.TRACK_TYPE_AUDIO,
+                                colorScheme = playerColorScheme,
+                                hasDisableOption = false
+                            )
                         }
                     }
 
@@ -137,37 +147,16 @@ fun BottomControl(
                     val textGroups = remember(tracks) {
                         tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
                     }
+
                     if (textGroups.isNotEmpty()) {
                         PlayerSettingChip("字幕") {
-                            val infos = TrackUtils.getFormattedTracks(textGroups, "字幕")
-                            val options = listOf("关闭") + infos.map { it.label }
-                            val current = infos.find { it.isSelected }?.label ?: "关闭"
-
-                            MixDialogBuilder("选择字幕", colorScheme = playerColorScheme).apply {
-                                setContent {
-                                    SingleSelectItemList(
-                                        options,
-                                        currentOption = current
-                                    ) { selected ->
-                                        val builder = player.trackSelectionParameters.buildUpon()
-                                        if (selected == "关闭") {
-                                            builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
-                                        } else {
-                                            val target = infos.find { it.label == selected }!!
-                                            builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-                                                .setOverrideForType(
-                                                    TrackSelectionOverride(
-                                                        target.group,
-                                                        target.index
-                                                    )
-                                                )
-                                        }
-                                        player.trackSelectionParameters = builder.build()
-                                        closeDialog()
-                                    }
-                                }
-                                show()
-                            }
+                            showTrackSelector(
+                                title = "选择字幕",
+                                player = player,
+                                trackType = C.TRACK_TYPE_TEXT,
+                                colorScheme = playerColorScheme,
+                                hasDisableOption = true
+                            )
                         }
                     }
 

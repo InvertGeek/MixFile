@@ -77,16 +77,22 @@ fun showTrackSelector(
     colorScheme: ColorScheme,
     hasDisableOption: Boolean = false
 ) {
+    // 只保留指定类型的 track group
     val groups = player.currentTracks.groups.filter { it.type == trackType }
     val trackInfos = TrackUtils.getFormattedTracks(
         groups,
         if (trackType == C.TRACK_TYPE_TEXT) "字幕" else "音轨"
     )
 
-    val options =
-        if (hasDisableOption) listOf("关闭") + trackInfos.map { it.label } else trackInfos.map { it.label }
-    val currentLabel =
-        trackInfos.find { it.isSelected }?.label ?: if (hasDisableOption) "关闭" else ""
+    // 构建选项列表
+    val options = buildList {
+        if (hasDisableOption) add("关闭")
+        addAll(trackInfos.map { it.label })
+    }
+
+    // 获取当前选中的 label
+    val currentLabel = trackInfos.firstOrNull { it.isSelected }?.label
+        ?: if (hasDisableOption) "关闭" else options.firstOrNull().orEmpty()
 
     MixDialogBuilder(title, colorScheme = colorScheme).apply {
         setContent {
@@ -95,7 +101,7 @@ fun showTrackSelector(
                 if (selected == "关闭") {
                     builder.setTrackTypeDisabled(trackType, true)
                 } else {
-                    val info = trackInfos.find { it.label == selected }!!
+                    val info = trackInfos.first { it.label == selected }
                     builder.setTrackTypeDisabled(trackType, false)
                         .setOverrideForType(TrackSelectionOverride(info.group, info.index))
                 }
