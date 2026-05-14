@@ -21,55 +21,17 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionOverride
-import androidx.media3.common.Tracks
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.donut.mixfile.ui.component.common.MixDialogBuilder
 import com.donut.mixfile.ui.component.common.SingleSelectItemList
+import java.util.Locale
 
-object TrackUtils {
-    /**
-     * 获取格式化后的轨道列表，处理重复 Label
-     */
-    fun getFormattedTracks(
-        groups: List<Tracks.Group>,
-        defaultPrefix: String = "轨道"
-    ): List<TrackInfo> {
-        val options = mutableListOf<TrackInfo>()
-        val labelCounter = mutableMapOf<String, Int>()
-
-        groups.forEach { group ->
-            for (i in 0 until group.length) {
-                val format = group.getTrackFormat(i)
-                val baseLabel = format.label ?: format.language ?: defaultPrefix
-
-                val count = labelCounter.getOrDefault(baseLabel, 0) + 1
-                labelCounter[baseLabel] = count
-                val finalLabel = if (count > 1) "$baseLabel-$count" else baseLabel
-
-                options.add(
-                    TrackInfo(
-                        finalLabel,
-                        group.mediaTrackGroup,
-                        i,
-                        group.isSelected && group.isTrackSelected(i)
-                    )
-                )
-            }
-        }
-        return options
-    }
-
-    data class TrackInfo(
-        val label: String,
-        val group: TrackGroup,
-        val index: Int,
-        val isSelected: Boolean
-    )
-}
 
 /**
  * 显示字幕/音轨选择弹窗
  */
+@androidx.annotation.OptIn(UnstableApi::class)
 fun showTrackSelector(
     title: String,
     player: ExoPlayer,
@@ -77,35 +39,74 @@ fun showTrackSelector(
     colorScheme: ColorScheme,
     hasDisableOption: Boolean = false
 ) {
-    // 只保留指定类型的 track group
+    // 1. 获取所有轨道组并提取规范化信息
     val groups = player.currentTracks.groups.filter { it.type == trackType }
-    val trackInfos = TrackUtils.getFormattedTracks(
-        groups,
-        if (trackType == C.TRACK_TYPE_TEXT) "字幕" else "音轨"
+
+    // 内部数据类，用于解耦逻辑
+    data class TrackDisplayInfo(
+        val label: String,
+        val group: TrackGroup,
+        val index: Int,
+        val isSelected: Boolean
     )
 
-    // 构建选项列表
+    var trackIndex = 1
+    val trackInfos = groups.flatMap { group ->
+        val trackGroup = group.mediaTrackGroup
+        List(trackGroup.length) { i ->
+            val format = trackGroup.getFormat(i)
+            val langLabel = format.language?.let { lang ->
+                val locale = Locale.forLanguageTag(lang)
+
+                locale.getDisplayName(Locale.getDefault()).ifBlank { format.language }
+            } ?: "未知"
+
+
+            val displayLabel = "${trackIndex} ${langLabel}".let {
+                if (format.label != null) {
+                    it + " - ${format.label}"
+                } else it
+            }
+            trackIndex++
+
+
+            TrackDisplayInfo(
+                label = displayLabel,
+                group = trackGroup,
+                index = i,
+                isSelected = group.isTrackSelected(i)
+            )
+        }
+    }
+
+    // 2. 构建 UI 选项列表
+    val disableLabel = if (trackType == C.TRACK_TYPE_TEXT) "关闭字幕" else "禁用音轨"
     val options = buildList {
-        if (hasDisableOption) add("关闭")
+        if (hasDisableOption) add(disableLabel)
         addAll(trackInfos.map { it.label })
     }
 
-    // 获取当前选中的 label
-    val currentLabel = trackInfos.firstOrNull { it.isSelected }?.label
-        ?: if (hasDisableOption) "关闭" else options.firstOrNull().orEmpty()
+    val currentSelectedLabel = trackInfos.firstOrNull { it.isSelected }?.label ?: disableLabel
 
     MixDialogBuilder(title, colorScheme = colorScheme).apply {
         setContent {
-            SingleSelectItemList(options, currentOption = currentLabel) { selected ->
-                val builder = player.trackSelectionParameters.buildUpon()
-                if (selected == "关闭") {
-                    builder.setTrackTypeDisabled(trackType, true)
+            SingleSelectItemList(options, currentOption = currentSelectedLabel) { selected ->
+                val paramsBuilder = player.trackSelectionParameters.buildUpon()
+
+                if (selected == disableLabel) {
+                    paramsBuilder.setTrackTypeDisabled(trackType, true)
                 } else {
-                    val info = trackInfos.first { it.label == selected }
-                    builder.setTrackTypeDisabled(trackType, false)
-                        .setOverrideForType(TrackSelectionOverride(info.group, info.index))
+                    val info = trackInfos.firstOrNull { it.label == selected }
+                    info?.let {
+                        paramsBuilder
+                            .setTrackTypeDisabled(trackType, false)
+                            // 清除该类型之前的覆盖设置，确保新设置生效
+                            .clearOverridesOfType(trackType)
+                            .addOverride(TrackSelectionOverride(it.group, it.index))
+                    }
                 }
-                player.trackSelectionParameters = builder.build()
+
+                player.trackSelectionParameters = paramsBuilder.build()
                 closeDialog()
             }
         }

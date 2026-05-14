@@ -82,7 +82,6 @@ fun VideoPlayerScreen(
 
         }
 
-
         val extractorsFactory = DefaultExtractorsFactory().apply {
             // 开启对所有可能的容器支持
             setConstantBitrateSeekingEnabled(true) // 允许对没有索引的流进行粗略进度拖动
@@ -93,6 +92,9 @@ fun VideoPlayerScreen(
             .setMediaSourceFactory(DefaultMediaSourceFactory(context, extractorsFactory))
             .build()
             .apply {
+                trackSelectionParameters = trackSelectionParameters.buildUpon()
+                    .setPreferredTextLanguages("zh", "zh-CN", "zh-TW")
+                    .build()
                 addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
                         showErrorDialog(error, "播放出错", playerColorScheme)
