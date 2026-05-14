@@ -6,39 +6,30 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.C
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import com.donut.mixfile.ui.component.common.MixDialogBuilder
 import com.donut.mixfile.ui.component.common.SingleSelectItemList
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomControl(
     visible: Boolean,
@@ -50,12 +41,8 @@ fun BottomControl(
 ) {
     AnimatedVisibility(
         visible = visible,
-        enter = slideInVertically(
-            initialOffsetY = { it } // 从顶部（负方向）滑入
-        ),
-        exit = slideOutVertically(
-            targetOffsetY = { it } // 向上（负方向）滑出
-        ),
+        enter = slideInVertically { it },
+        exit = slideOutVertically { it },
         modifier = modifier
     ) {
         Column(
@@ -64,95 +51,40 @@ fun BottomControl(
                 .background(Color.Black.copy(alpha = 0.1f))
                 .padding(5.dp),
         ) {
-
-
-            Slider(
-                value = progress,
-                onValueChange = { newValue ->
-                    player.pause()
+            // 1. 进度条：修复了回调逻辑，通过 onTrackTimeChange 同步状态
+            PlayerProgressSlider(
+                progress = progress,
+                onSeek = { newValue ->
                     player.seekTo((player.duration * newValue).toLong())
                     onTrackTimeChange(newValue)
                 },
-                onValueChangeFinished = {
-                    player.play()
-                },
-                modifier = Modifier
-                    .fillMaxWidth(),
-                thumb = {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(15.dp) // 自定义滑块大小
-                                .align(Alignment.Center)
-                                .background(Color.White, CircleShape)
-                        )
-                    }
-                },
-                track = { sliderState ->
-                    SliderDefaults.Track(
-                        sliderState = sliderState
-                    )
-                },
+                onSeekFinished = { player.play() }
             )
+
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 10.dp)
+                    .padding(bottom = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // 左侧：播放控制与时间
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
-                    var lastSeek = remember { System.currentTimeMillis() }
                     if (player.mediaItemCount > 1) {
-                        IconButton(
-                            modifier = Modifier.scale(1f),
-                            onClick = {
-                                if (System.currentTimeMillis() - lastSeek < 500) {
-                                    return@IconButton
-                                }
-                                lastSeek = System.currentTimeMillis()
-                                player.seekToPreviousMediaItem()
-                            },
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(100.dp),
-                                imageVector = Icons.Default.SkipPrevious,
-                                contentDescription = "Previous",
-                                tint = Color.White
-                            )
+                        IconButton(onClick = { player.seekToPreviousMediaItem() }) {
+                            Icon(Icons.Default.SkipPrevious, "Previous", tint = Color.White)
                         }
-                        IconButton(
-                            modifier = Modifier.scale(1f),
-                            onClick = {
-                                if (System.currentTimeMillis() - lastSeek < 500) {
-                                    return@IconButton
-                                }
-                                lastSeek = System.currentTimeMillis()
-                                player.seekToNextMediaItem()
-                            },
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(100.dp),
-                                imageVector = Icons.Default.SkipNext,
-                                contentDescription = "Next",
-                                tint = Color.White
-                            )
+                        IconButton(onClick = { player.seekToNextMediaItem() }) {
+                            Icon(Icons.Default.SkipNext, "Next", tint = Color.White)
                         }
-                    } else {
-                        Row(modifier = Modifier.width(10.dp)) { }
                     }
                     Text(
                         text = "${formatTime((player.duration * progress).toLong())}/${
                             formatTime(
-                                player.duration.coerceAtLeast(
-                                    0
-                                )
+                                player.duration.coerceAtLeast(0)
                             )
                         }",
                         color = Color.White,
@@ -160,91 +92,133 @@ fun BottomControl(
                     )
                 }
 
+                // 右侧：轨道、选集、速度设置
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
-                    if (player.mediaItemCount > 1) {
-                        AssistChip(
-                            onClick = {
-                                MixDialogBuilder(
-                                    "选集",
-                                    colorScheme = playerColorScheme
-                                ).apply {
-                                    val indexMap =
-                                        videos.mapIndexed { index, uri -> index to uri }
-                                    setContent {
-                                        SingleSelectItemList(
-                                            indexMap,
-                                            currentOption = indexMap[player.currentMediaItemIndex],
-                                            getLabel = {
-                                                "${it.first + 1} - ${it.second.fragment}"
-                                            }
-                                        ) {
-                                            player.seekToDefaultPosition(it.first)
-                                            closeDialog()
-                                        }
-                                    }
-                                    setDefaultNegative("取消")
-                                    show()
-                                }
-                            },
-                            label = {
-                                Text(
-                                    fontWeight = FontWeight.Bold,
-                                    text = "选集",
-                                    color = Color.White,
-                                    fontSize = 12.sp
-                                )
-                            }
-                        )
-                    }
+                    val tracks = player.currentTracks
+                    // 2. 音轨 (支持去重)
+                    val audioGroups =
+                        remember(tracks) { tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO } }
+                    if (audioGroups.size > 1) {
+                        PlayerSettingChip("音轨") {
+                            val infos = TrackUtils.getFormattedTracks(audioGroups, "音轨")
+                            val options = infos.map { it.label }
+                            val current =
+                                infos.find { it.isSelected }?.label ?: options.firstOrNull() ?: ""
 
-                    val currentSpeed = player.playbackParameters.speed
-
-                    AssistChip(
-                        onClick = {
-                            MixDialogBuilder(
-                                "播放速度",
-                                colorScheme = playerColorScheme
-                            ).apply {
+                            MixDialogBuilder("选择音轨", colorScheme = playerColorScheme).apply {
                                 setContent {
                                     SingleSelectItemList(
-                                        listOf(
-                                            "0.25",
-                                            "0.5",
-                                            "0.75",
-                                            "1.0",
-                                            "1.25",
-                                            "1.5",
-                                            "1.75",
-                                            "2.0",
-                                            "2.5",
-                                            "3.0"
-                                        ), currentOption = "${currentSpeed}"
-                                    ) {
-                                        player.setPlaybackSpeed(it.toFloat())
+                                        options,
+                                        currentOption = current
+                                    ) { selected ->
+                                        val target = infos.find { it.label == selected }!!
+                                        player.trackSelectionParameters =
+                                            player.trackSelectionParameters
+                                                .buildUpon()
+                                                .setOverrideForType(
+                                                    TrackSelectionOverride(
+                                                        target.group,
+                                                        target.index
+                                                    )
+                                                )
+                                                .build()
                                         closeDialog()
                                     }
                                 }
-                                setDefaultNegative("取消")
                                 show()
                             }
-                        },
-                        label = {
-                            Text(
-                                fontWeight = FontWeight.Bold,
-                                text = "速度: ${currentSpeed}x",
-                                color = Color.White,
-                                fontSize = 12.sp
-                            )
                         }
-                    )
+                    }
+
+                    // 字幕选择
+                    val textGroups = remember(tracks) {
+                        tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
+                    }
+                    if (textGroups.isNotEmpty()) {
+                        PlayerSettingChip("字幕") {
+                            val infos = TrackUtils.getFormattedTracks(textGroups, "字幕")
+                            val options = listOf("关闭") + infos.map { it.label }
+                            val current = infos.find { it.isSelected }?.label ?: "关闭"
+
+                            MixDialogBuilder("选择字幕", colorScheme = playerColorScheme).apply {
+                                setContent {
+                                    SingleSelectItemList(
+                                        options,
+                                        currentOption = current
+                                    ) { selected ->
+                                        val builder = player.trackSelectionParameters.buildUpon()
+                                        if (selected == "关闭") {
+                                            builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                                        } else {
+                                            val target = infos.find { it.label == selected }!!
+                                            builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                                                .setOverrideForType(
+                                                    TrackSelectionOverride(
+                                                        target.group,
+                                                        target.index
+                                                    )
+                                                )
+                                        }
+                                        player.trackSelectionParameters = builder.build()
+                                        closeDialog()
+                                    }
+                                }
+                                show()
+                            }
+                        }
+                    }
+
+                    // 选集选择
+                    if (player.mediaItemCount > 1) {
+                        PlayerSettingChip("选集") {
+                            val indexMap = videos.mapIndexed { index, uri -> index to uri }
+                            MixDialogBuilder("选集", colorScheme = playerColorScheme).apply {
+                                setContent {
+                                    SingleSelectItemList(
+                                        indexMap,
+                                        currentOption = indexMap.getOrNull(player.currentMediaItemIndex),
+                                        getLabel = { "${it.first + 1} - ${it.second.fragment ?: "未命名"}" }
+                                    ) {
+                                        player.seekToDefaultPosition(it.first)
+                                        closeDialog()
+                                    }
+                                }
+                                show()
+                            }
+                        }
+                    }
+
+                    // 速度选择
+                    val currentSpeed = player.playbackParameters.speed
+
+                    PlayerSettingChip("速度: ${currentSpeed}x") {
+                        MixDialogBuilder("播放速度", colorScheme = playerColorScheme).apply {
+                            setContent {
+                                val speeds = listOf(
+                                    "0.25",
+                                    "0.5",
+                                    "0.75",
+                                    "1.0",
+                                    "1.25",
+                                    "1.5",
+                                    "1.75",
+                                    "2.0",
+                                    "2.5",
+                                    "3.0"
+                                )
+                                SingleSelectItemList(speeds, currentOption = "$currentSpeed") {
+                                    player.setPlaybackSpeed(it.toFloat())
+                                    closeDialog()
+                                }
+                            }
+                            show()
+                        }
+                    }
                 }
-
-
             }
-
         }
     }
 }
