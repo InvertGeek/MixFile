@@ -71,6 +71,7 @@ fun BottomControl(
             ) {
                 // 左侧：播放控制与时间
                 Row(
+                    modifier = Modifier.padding(start = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
