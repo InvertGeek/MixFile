@@ -3,6 +3,7 @@ package com.donut.mixfile.activity.video.player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AssistChip
@@ -126,7 +127,9 @@ fun PlayerProgressSlider(
         value = progress,
         onValueChange = onSeek, // 直接执行传入的 seek 逻辑
         onValueChangeFinished = onSeekFinished,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp),
         thumb = {
             Box(modifier = Modifier.size(20.dp)) {
                 Box(
