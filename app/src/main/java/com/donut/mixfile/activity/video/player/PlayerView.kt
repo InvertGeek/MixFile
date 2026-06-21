@@ -4,6 +4,7 @@ package com.donut.mixfile.activity.video.player
 import android.graphics.Typeface
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -127,6 +128,10 @@ fun VideoPlayerScreen(
             delay(3000)
             controlsVisible.set(false)
         }
+    }
+
+    BackHandler(!controlsVisible.get) {
+        controlsVisible.set(true)
     }
 
     val lifecycleOwner =
