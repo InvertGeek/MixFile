@@ -17,8 +17,8 @@ android {
         applicationId = "com.donut.mixfile"
         minSdk = 26
         targetSdk = 36
-        versionCode = 163
-        versionName = "2.0.11.4"
+        versionCode = 164
+        versionName = "2.0.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -72,7 +72,7 @@ dependencies {
     // 引用 libs 目录下的所有 aar
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    implementation("com.github.InvertGeek:mixfile-core:2.0.11")
+    implementation("com.github.InvertGeek:mixfile-core:2.0.13")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.tencent:mmkv:1.3.14")
     implementation("net.engawapg.lib:zoomable:1.6.1")
